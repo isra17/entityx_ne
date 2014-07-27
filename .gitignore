@@ -19,3 +19,10 @@
 *.exe
 *.out
 *.app
+
+#MSVC
+msvc/Debug
+msvc/Release
+*.opensdf
+*.sdf
+*.suo
