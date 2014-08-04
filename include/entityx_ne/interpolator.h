@@ -15,8 +15,8 @@ namespace entityx {
     class InterpolateSystem : public entityx::System < InterpolateSystem<I, Type> > {
     public:
       void update(entityx::EntityManager &entities, entityx::EventManager &events, double dt) {
-        Type::Handle current;
-        FramedComponent<Type>::Handle frameComponent;
+        typename Type::Handle current;
+        typename FramedComponent<Type>::Handle frameComponent;
 
         for (Entity e : entities.entities_with_components(current, frameComponent)) {
           interpolator_.interpolate(frameComponent->base, *current.get(), frameComponent->renderable, dt / frameLength_);
@@ -31,8 +31,8 @@ namespace entityx {
     template<typename Type>
     struct CopyBaseSystem : public entityx::System < CopyBaseSystem<Type> > {
       void update(entityx::EntityManager &entities, entityx::EventManager &events, double dt) {
-        Type::Handle current;
-        FramedComponent<Type>::Handle frameComponent;
+        typename Type::Handle current;
+        typename FramedComponent<Type>::Handle frameComponent;
 
         for (Entity e : entities.entities_with_components(current, frameComponent)) {
           frameComponent->base = *current.get();

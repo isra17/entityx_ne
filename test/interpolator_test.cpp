@@ -1,25 +1,5 @@
 #include <gtest/gtest.h>
-#include <entityx/entityx.h>
-#include <entityx_ne/interpolator.h>
-
-struct TestComponent : public entityx::Component < TestComponent > {
-  int state = 0;
-};
-
-struct TestInterpolator : public entityx::ne::Interpolator< TestInterpolator, TestComponent > {
-  void interpolate(const TestComponent& base, const TestComponent& current, TestComponent& interpolated, double t) override {
-    interpolated.state = base.state * (1 - t) + current.state * t + 0.5f;
-  }
-};
-
-struct TestSystem : public entityx::System < TestSystem > {
-  void update(entityx::EntityManager &es, entityx::EventManager &events, double dt) override {
-    TestComponent::Handle c;
-    for (entityx::Entity entity : es.entities_with_components(c)) {
-      c->state += (10 * dt) + 0.5f;
-    }
-  }
-};
+#include "test_system.h"
 
 class InteroplatorTest : public testing::Test {
 protected:

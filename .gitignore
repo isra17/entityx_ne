@@ -26,3 +26,9 @@ msvc/Release
 *.opensdf
 *.sdf
 *.suo
+
+#cmake
+build
+
+#sublime
+*.sublime-*
