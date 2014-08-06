@@ -32,3 +32,6 @@ build
 
 #sublime
 *.sublime-*
+
+#vim
+*.swp

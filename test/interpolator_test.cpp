@@ -22,7 +22,7 @@ protected:
   void renderUpdate(double dt) {
     instance.systems.update<TestInterpolator::System>(dt);
   }
-  
+
   entityx::EntityX instance;
   entityx::Entity local_entity;
 };
