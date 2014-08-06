@@ -5,6 +5,8 @@ project (entityx_ne_test)
 set (SRCS
 main.cpp
 interpolator_test.cpp
+net_entity_manager_test.cpp
+../src/net_entity_manager.cpp
 )
 
 set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++11)

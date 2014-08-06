@@ -1,17 +1,20 @@
 #pragma once
 
+#include <entityx/entityx.h>
+#include <map>
+
 namespace entityx {
 namespace ne {
 
-class NetEntityManager {
-  entityx::Entity create();
+class NetEntityManager : public entityx::EntityManager {
+ public:
+  NetEntityManager(entityx::EventManager& events) : entityx::EntityManager(events) {}
   entityx::Entity net_create();
   entityx::Entity net_create(entityx::Entity::Id id);
-
+  bool is_net(entityx::Entity entity);
  private:
-   entityx::EntityManager _remoteManager;
-   entityx::EntityManager _localManager;
-}
+  std::map<entityx::Entity::Id, entityx::Entity::Id> _net_id_mapping;
+};
 
 } // namespace ne
 } // namespace entityx

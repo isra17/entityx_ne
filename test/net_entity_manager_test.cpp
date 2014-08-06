@@ -1,15 +1,20 @@
 #include <gtest/gtest.h>
+#include <entityx_ne/net_entity_manager.h>
 #include "test_system.h"
 
 class NetEntityManagerTest : public testing::Test {
 protected:
+  NetEntityManagerTest() : manager(events), remote_manager(remote_events) {}
+
   virtual void SetUp() {
 
   }
 
   entityx::ne::NetEntityManager manager;
   entityx::ne::NetEntityManager remote_manager;
-}
+  entityx::EventManager events;
+  entityx::EventManager remote_events;
+};
 
 TEST_F(NetEntityManagerTest, NetCreate) {
   auto net_e = manager.net_create();
@@ -19,5 +24,5 @@ TEST_F(NetEntityManagerTest, NetCreate) {
   EXPECT_FALSE(manager.is_net(e));
 
   auto net_other = remote_manager.net_create(net_e.id());
-  EXPECT_EQ(net_e.id(), net_other.id());
+  EXPECT_TRUE(manager.is_net(net_other));
 }
