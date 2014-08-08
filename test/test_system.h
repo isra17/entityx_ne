@@ -23,4 +23,9 @@ struct TestSystem : public entityx::System < TestSystem > {
   }
 };
 
+struct TestEvent : public entityx::Event<TestEvent> {
+  TestEvent(int value) : value(value) {};
+  int value;
+};
+
 #endif
