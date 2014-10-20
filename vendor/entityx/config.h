@@ -2,10 +2,11 @@
 
 #define ENTITYX_MAX_COMPONENTS 64
 
-#include <stdint.h>
+#include <cstdint>
+#include <cstddef>
 
 namespace entityx {
 
-static const uint64_t MAX_COMPONENTS = ENTITYX_MAX_COMPONENTS;
+static const size_t MAX_COMPONENTS = ENTITYX_MAX_COMPONENTS;
 
 }  // namespace entityx
