@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "test_system.h"
+#include "support/test_system.h"
 
 class InteroplatorTest : public testing::Test {
 protected:

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <entityx_ne/net_entity_manager.h>
-#include "test_system.h"
+#include "support/test_system.h"
 
 class NetEntityManagerTest : public testing::Test {
 protected:

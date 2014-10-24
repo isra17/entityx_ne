@@ -28,4 +28,16 @@ struct TestEvent : public entityx::Event<TestEvent> {
   int value;
 };
 
+class TestReceiver : public entityx::Receiver<TestEvent> {
+  public:
+    TestReceiver() : _value{0} {}
+    bool value() const { return _value; }
+    void reset() { _value = 0; }
+    void receive(const TestEvent &event) {
+      _value = event.value;
+    }
+  private:
+    int _value;
+};
+
 #endif
