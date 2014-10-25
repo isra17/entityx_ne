@@ -13,7 +13,7 @@ class NetEventManager : public entityx::EventManager {
     {}
 
     void net_emit(const BaseEvent &event) {
-
+      _net_connection->send_event(event);
     }
 
   private:

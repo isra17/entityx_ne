@@ -15,6 +15,7 @@ std::unique_ptr<TestEvent> TestNetConnection::poll_event() {
   }
 }
 
-void TestNetConnection::send_event(const TestEvent& event) {
-  _event_queue.push(event);
+void TestNetConnection::send_event(const entityx::BaseEvent& event) {
+  const TestEvent& test_event = dynamic_cast<const TestEvent&>(event);
+  _other.lock()->_event_queue.push(test_event);
 }

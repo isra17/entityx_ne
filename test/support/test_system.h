@@ -31,7 +31,7 @@ struct TestEvent : public entityx::Event<TestEvent> {
 class TestReceiver : public entityx::Receiver<TestEvent> {
   public:
     TestReceiver() : _value{0} {}
-    bool value() const { return _value; }
+    int value() const { return _value; }
     void reset() { _value = 0; }
     void receive(const TestEvent &event) {
       _value = event.value;

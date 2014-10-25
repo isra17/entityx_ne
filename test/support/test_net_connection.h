@@ -11,7 +11,7 @@ class TestNetConnection {
     void set_other(std::shared_ptr<TestNetConnection> other);
 
     std::unique_ptr<TestEvent> poll_event();
-    void send_event(const TestEvent& event);
+    void send_event(const entityx::BaseEvent& event);
 
   private:
     std::weak_ptr<TestNetConnection> _other;

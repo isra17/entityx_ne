@@ -3,8 +3,9 @@
 #include <gtest/gtest.h>
 #include "support/test_net_connection.h"
 
-struct EntityXNETest : public testing::Test {
-  virtual void setup() {
+class EntityXNETest : public testing::Test {
+protected:
+  virtual void SetUp() override {
     _server_connection = std::make_shared<TestNetConnection>();
     _client_connection = std::make_shared<TestNetConnection>();
 

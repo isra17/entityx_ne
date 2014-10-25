@@ -10,7 +10,7 @@ elseif(WIN32)
   set(OS_DIR win32)
 endif()
 
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fexceptions -std=c++11 -Wno-unused-parameter -Wno-unused-variable -Wno-c++11-extensions -stdlib=libc++" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fexceptions -std=c++11 -Wno-unused-parameter -Wno-unused-variable -Wno-c++11-extensions -stdlib=libc++ -g -O0" )
 
 set (SRCS
 main.cpp
