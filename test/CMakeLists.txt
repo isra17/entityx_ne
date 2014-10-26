@@ -10,10 +10,9 @@ elseif(WIN32)
   set(OS_DIR win32)
 endif()
 
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fexceptions -std=c++11 -Wno-unused-parameter -Wno-unused-variable -Wno-c++11-extensions -stdlib=libc++ -g -O0" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fexceptions -std=c++11 -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-unused-variable -Wno-c++11-extensions -g -O0" )
 
 set (SRCS
-main.cpp
 interpolator_test.cpp
 net_entity_manager_test.cpp
 net_event_test.cpp
@@ -29,4 +28,6 @@ include_directories (../include)
 include_directories (SYSTEM ../vendor)
 
 add_executable(entityx_ne_test ${SRCS})
-target_link_libraries(entityx_ne_test libgtest.a libentityx.a)
+target_link_libraries(entityx_ne_test gtest gtest_main entityx)
+
+add_custom_target(run_test entityx_ne_test)

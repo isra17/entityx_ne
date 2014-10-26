@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entityx/entity.h>
+#include <entityx/entityx.h>
 
 namespace entityx {
 namespace ne {

@@ -29,6 +29,7 @@
 # For more information, please refer to <http://unlicense.org/>
 
 import os
+import sys
 import ycm_core
 
 # These are the compilation flags that will be used in case there's no
@@ -58,14 +59,21 @@ flags = [
 'c++',
 '-I','./include',
 '-isystem','./vendor',
-'-isystem','/System/Library/Frameworks/Python.framework/Headers',
 '-isystem','/usr/include',
 '-isystem','/usr/local/include',
-'-isystem','/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1',
-'-isystem','/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/6.0/include',
-'-isystem','/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include'
 ]
 
+if sys.platform == 'darwin':
+  flags += ['-isystem','/System/Library/Frameworks/Python.framework/Headers',
+  '-isystem','/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1',
+  '-isystem','/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/6.0/include',
+  '-isystem','/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include']
+elif sys.platform in ['linux', 'linux2']:
+  flags += ['-isystem','/usr/lib/gcc/x86_64-unknown-linux-gnu/4.9.1/../../../../include/c++/4.9.1',
+  '-isystem','/usr/lib/gcc/x86_64-unknown-linux-gnu/4.9.1/include',
+  '-isystem','/usr/lib/gcc/x86_64-unknown-linux-gnu/4.9.1/../../../../include/c++/4.9.1/x86_64-unknown-linux-gnu',
+  '-isystem','/usr/lib/gcc/x86_64-unknown-linux-gnu/4.9.1/../../../../include/c++/4.9.1/backward',
+  '-isystem','/usr/lib/gcc/x86_64-unknown-linux-gnu/4.9.1/include-fixed']
 
 # Set this to the absolute path to the folder (NOT the file!) containing the
 # compile_commands.json file to use that instead of 'flags'. See here for
