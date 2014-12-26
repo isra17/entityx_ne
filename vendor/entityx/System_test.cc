@@ -21,22 +21,28 @@ using namespace entityx;
 using std::string;
 
 struct Position : Component<Position> {
-  Position(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
+  explicit Position(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
 
   float x, y;
 };
 
 struct Direction : Component<Direction> {
-  Direction(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
+  explicit Direction(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
 
   float x, y;
+};
+
+struct Counter : Component<Counter> {
+  explicit Counter(int counter = 0) : counter(counter) {}
+
+  int counter;
 };
 
 class MovementSystem : public System<MovementSystem> {
  public:
   explicit MovementSystem(string label = "") : label(label) {}
 
-  void update(EntityManager &es, EventManager &events, double) override {
+  void update(EntityManager &es, EventManager &events, TimeDelta) override {
     EntityManager::View entities =
         es.entities_with_components<Position, Direction>();
     ComponentHandle<Position> position;
@@ -51,6 +57,19 @@ class MovementSystem : public System<MovementSystem> {
   string label;
 };
 
+class CounterSystem : public System<CounterSystem> {
+public:
+  void update(EntityManager &es, EventManager &events, TimeDelta) override {
+    EntityManager::View entities =
+        es.entities_with_components<Counter>();
+    Counter::Handle counter;
+    for (auto entity : entities) {
+      entity.unpack<Counter>(counter);
+      counter->counter++;
+    }
+  }
+};
+
 class EntitiesFixture : public EntityX {
  public:
   std::vector<Entity> created_entities;
@@ -61,6 +80,8 @@ class EntitiesFixture : public EntityX {
       created_entities.push_back(e);
       if (i % 2 == 0) e.assign<Position>(1, 2);
       if (i % 3 == 0) e.assign<Direction>(1, 1);
+
+      e.assign<Counter>(0);
     }
   }
 };
@@ -88,5 +109,27 @@ TEST_CASE_METHOD(EntitiesFixture, "TestApplySystem") {
       REQUIRE(1.0 == Approx(position->x));
       REQUIRE(2.0 == Approx(position->y));
     }
+  }
+}
+
+TEST_CASE_METHOD(EntitiesFixture, "TestApplyAllSystems") {
+  systems.add<MovementSystem>();
+  systems.add<CounterSystem>();
+  systems.configure();
+
+  systems.update_all(0.0);
+  Position::Handle position;
+  Direction::Handle direction;
+  Counter::Handle counter;
+  for (auto entity : created_entities) {
+    entity.unpack<Position, Direction, Counter>(position, direction, counter);
+    if (position && direction) {
+      REQUIRE(2.0 == Approx(position->x));
+      REQUIRE(3.0 == Approx(position->y));
+    } else if (position) {
+      REQUIRE(1.0 == Approx(position->x));
+      REQUIRE(2.0 == Approx(position->y));
+    }
+    REQUIRE(1 == counter->counter);
   }
 }

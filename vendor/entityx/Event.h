@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 #include <cstddef>
 #include <vector>
 #include <list>
@@ -29,7 +29,7 @@ class BaseEvent {
  public:
   typedef std::size_t Family;
 
-  virtual ~BaseEvent() {}
+  virtual ~BaseEvent();
 
   virtual Family my_family() const = 0;
 
@@ -159,7 +159,8 @@ class EventManager : entityx::help::NonCopyable {
    */
   template <typename E, typename ... Args>
   void emit(Args && ... args) {
-    E event(std::forward<Args>(args) ...);
+    // Using 'E event(std::forward...)' causes VS to fail with an internal error. Hack around it.
+    E event = E(std::forward<Args>(args) ...);
     auto sig = signal_for(std::size_t(E::family()));
     BaseEvent *base = &event;
     sig->emit(base);

@@ -18,7 +18,7 @@
 #include <set>
 #include <map>
 #include "entityx/3rdparty/catch.hpp"
-#include "entityx/Entity.h"
+#include "entityx/entityx.h"
 
 // using namespace std;
 using namespace entityx;
@@ -518,4 +518,63 @@ TEST_CASE_METHOD(EntityManagerFixture, "TestEntityInStdMap") {
   REQUIRE(entityMap[a] == 1);
   REQUIRE(entityMap[b] == 2);
   REQUIRE(entityMap[c] == 3);
+}
+
+TEST_CASE_METHOD(EntityManagerFixture, "TestEntityComponentsFromTuple") {
+  Entity e = em.create();
+  e.assign<Position>(1, 2);
+  e.assign<Direction>(3, 4);
+
+  std::tuple<Position::Handle, Direction::Handle> components = e.components<Position, Direction>();
+
+  REQUIRE(std::get<0>(components)->x == 1);
+  REQUIRE(std::get<0>(components)->y == 2);
+  REQUIRE(std::get<1>(components)->x == 3);
+  REQUIRE(std::get<1>(components)->y == 4);
+}
+
+TEST_CASE("TestComponentDestructorCalledWhenManagerDestroyed") {
+  struct Freed {
+    explicit Freed(bool &yes) : yes(yes) {}
+    ~Freed() { yes = true; }
+
+    bool &yes;
+  };
+
+  struct Test : Component<Test> {
+    Test(bool &yes) : freed(yes) {}
+
+    Freed freed;
+  };
+
+  bool freed = false;
+  {
+    EntityX e;
+    auto test = e.entities.create();
+    test.assign<Test>(freed);
+  }
+  REQUIRE(freed == true);
+}
+
+TEST_CASE("TestComponentDestructorCalledWhenEntityDestroyed") {
+  struct Freed {
+    explicit Freed(bool &yes) : yes(yes) {}
+    ~Freed() { yes = true; }
+
+    bool &yes;
+  };
+
+  struct Test : Component<Test> {
+    Test(bool &yes) : freed(yes) {}
+
+    Freed freed;
+  };
+
+  bool freed = false;
+  EntityX e;
+  auto test = e.entities.create();
+  test.assign<Test>(freed);
+  REQUIRE(freed == false);
+  test.destroy();
+  REQUIRE(freed == true);
 }

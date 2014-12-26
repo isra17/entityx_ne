@@ -11,7 +11,7 @@
 #pragma once
 
 
-#include <stdint.h>
+#include <cstdint>
 #include <tuple>
 #include <new>
 #include <cstdlib>
@@ -34,6 +34,8 @@
 
 namespace entityx {
 
+typedef std::uint32_t uint32_t;
+typedef std::uint64_t uint64_t;
 
 class EntityManager;
 
@@ -141,6 +143,12 @@ public:
 
   template <typename C>
   const ComponentHandle<const C> component() const;
+
+  template <typename ... Components>
+  std::tuple<ComponentHandle<Components>...> components();
+
+  template <typename ... Components>
+  std::tuple<ComponentHandle<const Components>...> components() const;
 
   template <typename C>
   bool has_component() const;
@@ -273,6 +281,7 @@ struct Component : public BaseComponent {
  */
 struct EntityCreatedEvent : public Event<EntityCreatedEvent> {
   explicit EntityCreatedEvent(Entity entity) : entity(entity) {}
+  virtual ~EntityCreatedEvent();
 
   Entity entity;
 };
@@ -283,6 +292,7 @@ struct EntityCreatedEvent : public Event<EntityCreatedEvent> {
  */
 struct EntityDestroyedEvent : public Event<EntityDestroyedEvent> {
   explicit EntityDestroyedEvent(Entity entity) : entity(entity) {}
+  virtual ~EntityDestroyedEvent();
 
   Entity entity;
 };
@@ -324,8 +334,8 @@ class EntityManager : entityx::help::NonCopyable {
   virtual ~EntityManager();
 
   /// An iterator over a view of the entities in an EntityManager.
-  /// If Debug is true it will iterate over all valid entities and will ignore the entity mask.
-  template <class Delegate, bool Debug = false>
+  /// If All is true it will iterate over all valid entities and will ignore the entity mask.
+  template <class Delegate, bool All = false>
   class ViewIterator : public std::iterator<std::input_iterator_tag, Entity::Id> {
    public:
     Delegate &operator ++() {
@@ -340,9 +350,19 @@ class EntityManager : entityx::help::NonCopyable {
 
    protected:
     ViewIterator(EntityManager *manager, uint32_t index)
-        : manager_(manager), i_(index), capacity_(manager_->capacity()) {}
+        : manager_(manager), i_(index), capacity_(manager_->capacity()) {
+      if (All) {
+        manager_->free_list_.sort();
+        free_cursor_ = manager_->free_list_.begin();
+      }
+    }
     ViewIterator(EntityManager *manager, const ComponentMask mask, uint32_t index)
-        : manager_(manager), mask_(mask), i_(index), capacity_(manager_->capacity()) {}
+        : manager_(manager), mask_(mask), i_(index), capacity_(manager_->capacity()) {
+      if (All) {
+        manager_->free_list_.sort();
+        free_cursor_ = manager_->free_list_.begin();
+      }
+    }
 
     void next() {
       while (i_ < capacity_ && !predicate()) {
@@ -355,13 +375,14 @@ class EntityManager : entityx::help::NonCopyable {
       }
     }
 
-    inline bool predicate() const {
-      return (Debug && valid_entity()) || (manager_->entity_component_mask_[i_] & mask_) == mask_;
+    inline bool predicate() {
+      return (All && valid_entity()) || (manager_->entity_component_mask_[i_] & mask_) == mask_;
     }
 
-    inline bool valid_entity() const {
-      for (uint32_t i : manager_->free_list_) {
-        if (i_ == i) return false;
+    inline bool valid_entity() {
+      if (free_cursor_ != manager_->free_list_.end() && *free_cursor_ == i_) {
+        ++free_cursor_;
+        return false;
       }
       return true;
     }
@@ -370,17 +391,18 @@ class EntityManager : entityx::help::NonCopyable {
     ComponentMask mask_;
     uint32_t i_;
     size_t capacity_;
+    std::list<uint32_t>::iterator free_cursor_;
   };
 
-  template <bool Debug>
+  template <bool All>
   class BaseView {
   public:
-    class Iterator : public ViewIterator<Iterator, Debug> {
+    class Iterator : public ViewIterator<Iterator, All> {
     public:
       Iterator(EntityManager *manager,
         const ComponentMask mask,
-        uint32_t index) : ViewIterator<Iterator, Debug>(manager, mask, index) {
-        ViewIterator<Iterator, Debug>::next();
+        uint32_t index) : ViewIterator<Iterator, All>(manager, mask, index) {
+        ViewIterator<Iterator, All>::next();
       }
 
       void next_entity(Entity &entity) {}
@@ -388,7 +410,7 @@ class EntityManager : entityx::help::NonCopyable {
 
 
     Iterator begin() { return Iterator(manager_, mask_, 0); }
-    Iterator end() { return Iterator(manager_, mask_, manager_->capacity()); }
+    Iterator end() { return Iterator(manager_, mask_, uint32_t(manager_->capacity())); }
     const Iterator begin() const { return Iterator(manager_, mask_, 0); }
     const Iterator end() const { return Iterator(manager_, mask_, manager_->capacity()); }
 
@@ -513,7 +535,7 @@ class EntityManager : entityx::help::NonCopyable {
    */
   void destroy(Entity::Id entity) {
     assert_valid(entity);
-    int index = entity.index();
+    uint32_t index = entity.index();
     auto mask = entity_component_mask_[entity.index()];
     event_manager_.emit<EntityDestroyedEvent>(Entity(this, entity));
     for (size_t i = 0; i < component_pools_.size(); i++) {
@@ -521,7 +543,7 @@ class EntityManager : entityx::help::NonCopyable {
       if (pool && mask.test(i))
         pool->destroy(index);
     }
-    entity_component_mask_[index] = 0;
+    entity_component_mask_[index].reset();
     entity_version_[index]++;
     free_list_.push_back(index);
   }
@@ -552,6 +574,7 @@ class EntityManager : entityx::help::NonCopyable {
   ComponentHandle<C> assign(Entity::Id id, Args && ... args) {
     assert_valid(id);
     const BaseComponent::Family family = C::family();
+    assert(!entity_component_mask_[id.index()].test(family));
 
     // Placement new into the component pool.
     Pool<C> *pool = accomodate_component<C>();
@@ -639,6 +662,16 @@ class EntityManager : entityx::help::NonCopyable {
     if (!pool || !entity_component_mask_[id.index()][family])
       return ComponentHandle<const C>();
     return ComponentHandle<const C>(this, id);
+  }
+
+  template <typename ... Components>
+  std::tuple<ComponentHandle<Components>...> components(Entity::Id id) {
+    return std::make_tuple(component<Components>(id)...);
+  }
+
+  template <typename ... Components>
+  std::tuple<ComponentHandle<const Components>...> components(Entity::Id id) const {
+    return std::make_tuple(component<const Components>(id)...);
   }
 
   /**
@@ -848,6 +881,19 @@ const ComponentHandle<const C> Entity::component() const {
   assert(valid());
   return manager_->component<const C>(id_);
 }
+
+template <typename ... Components>
+std::tuple<ComponentHandle<Components>...> Entity::components() {
+  assert(valid());
+  return manager_->components<Components...>(id_);
+}
+
+template <typename ... Components>
+std::tuple<ComponentHandle<const Components>...> Entity::components() const {
+  assert(valid());
+  return manager_->components<const Components...>(id_);
+}
+
 
 template <typename C>
 bool Entity::has_component() const {
