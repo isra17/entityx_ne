@@ -4,16 +4,16 @@
 
 class NetEntityManagerTest : public testing::Test {
 protected:
-  NetEntityManagerTest() : manager(events), remote_manager(remote_events) {}
+  NetEntityManagerTest() : events(), remote_events(), manager(events), remote_manager(remote_events) {}
 
   virtual void SetUp() {
 
   }
 
-  entityx::ne::NetEntityManager manager;
-  entityx::ne::NetEntityManager remote_manager;
   entityx::EventManager events;
   entityx::EventManager remote_events;
+  entityx::ne::NetEntityManager manager;
+  entityx::ne::NetEntityManager remote_manager;
 };
 
 TEST_F(NetEntityManagerTest, NetCreate) {
